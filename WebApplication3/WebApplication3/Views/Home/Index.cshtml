@@ -1,0 +1,132 @@
+﻿<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>View</title>
+    <script src="@Url.Content("~/Scripts/jquery-1.10.2.js")" type="text/javascript"> </script>
+    <script type="text/javascript">
+        var check = @Html.Raw(Json.Encode(Model));
+        $(document).ready(function () {
+            var itemIndex = 1;
+            $('#nextButton').click(function() {
+                itemIndex += 1;
+                $.ajax({
+                    type: 'GET',
+                    data: {item: itemIndex, searchProduct: $('#searchProduct').val()},
+                    url: '@Url.Action("MoveRequest", "Home")',
+                    success: function (result) {
+                        var s = '';
+                        s += '<table border="1" width="400"> <tr> <td> Title </td> <td> Author(s) </td> <td> Price </td> </tr>';
+                        for (var i = 0; i < result.length; i++) {
+                            s += '<tr> <td>' + result[i].Name + '</td> <td>' + result[i].Authors + '</td> <td>' + result[i].Price + '</td> </tr>';
+                        }
+                        s += '</table>';
+                        $('#data').html(s);
+                        check.length = 0;
+                        for (var i = 0; i < result.length; i++) {
+                            check.push({"Authors": result[i].Authors, "Name": result[i].Name, "Price": result[i].Price });
+                        }
+                    }
+                });
+            });
+
+            $('#prevButton').click(function() {
+                itemIndex -= 1;
+                if(itemIndex <= 0) {
+                    itemIndex = 1;
+                }
+                $.ajax({
+                    type: 'GET',
+                    data: {item: itemIndex, searchProduct: $('#searchProduct').val()},
+                    url: '@Url.Action("MoveRequest", "Home")',
+                    success: function (result) {
+                        var s = '';
+                        s += '<table border="1" width="400"> <tr> <td> Title </td> <td> Author(s) </td> <td> Price </td> </tr>';
+                        for (var i = 0; i < result.length; i++) {
+                            s += '<tr> <td>' + result[i].Name + '</td> <td>' + result[i].Authors + '</td> <td>' + result[i].Price + '</td> </tr>';
+                        }
+                        s += '</table>';
+                        $('#data').html(s);
+                        check.length = 0;
+                        for (var i = 0; i < result.length; i++) {
+                            check.push({"Authors": result[i].Authors, "Name": result[i].Name, "Price": result[i].Price });
+                        }
+                    }
+                });
+             });
+
+            $('.currencyButton').click(function () {
+                check.push({"Authors": "", "Name": $('#FromCurrency').val(), "Price": $('#ToCurrency').val() });
+                         
+                $.ajax({
+                    type: 'POST',
+                    data: JSON.stringify(check),
+                    contentType: 'application/json; charset=utf-8',
+                    url: '@Url.Action("ConvertCurrency", "Home")',
+                    success: function (result) {
+                        var s = '';
+                        s += '<table border="1" width="400"> <tr> <td> Title </td> <td> Author(s) </td> <td> Price </td> </tr>';
+                        for (var i = 0; i < result.length; i++) {
+                            s += '<tr> <td>' + result[i].Name + '</td> <td>' + result[i].Authors + '</td> <td>' + result[i].Price + '</td> </tr>';
+                        }
+                        s += '</table>';
+                        $('#data').html(s);
+                    }
+                });
+                return false;
+            });
+        });
+
+     </script>
+</head>
+<h2>Index</h2>
+
+<body>
+
+    <div id="searchProductForm">
+        @using (Html.BeginForm())
+        {
+            <p>
+                Find by name: @Html.TextBox("searchProduct")
+                <input type="submit" value="Search" />
+            </p>
+        }
+    </div>
+
+    <div id="SendCurrency">
+        @using (Html.BeginForm())
+        {
+              <p>
+              Convert From: @Html.TextBox("FromCurrency")
+              Convert To: @Html.TextBox("ToCurrency")
+              <input type="submit" value="Convert"  class="currencyButton"/>
+              </p>
+        }
+    </div>
+
+    <div id="data">
+        <table border="1" width="400">
+            <tr>
+                <td> Title </td>
+                <td> Author(s) </td>
+                <td> Price </td>
+            </tr>
+            @if (Model != null)
+            {
+                foreach (var book in Model)
+                {
+                    <tr>
+                        <td>@book.Name</td>
+                        <td>@book.Authors</td>
+                        <td>@book.Price</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+
+    <button type="button" id="prevButton">Previous</button>
+    <button type="button" id="nextButton">Next</button>
+
+
+</body>
+</html>
